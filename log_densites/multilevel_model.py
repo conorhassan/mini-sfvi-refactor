@@ -1,7 +1,7 @@
 import jax.numpy as jnp
 from numpyro import distributions as dist
 
-def local_model_log_density(data, z_L, z_G):
+def client_model_log_density(data, z_L, z_G):
     z_G_exp = jnp.exp(z_G[3:]) 
     logp = jnp.sum(z_G[3:])
     logp += dist.Normal(z_G[0], z_G_exp[0]).log_prob(z_L[0])
@@ -12,7 +12,7 @@ def local_model_log_density(data, z_L, z_G):
 
 def global_model_log_density(z_G):
     z_G_exp = jnp.exp(z_G[3:])
-    logp += jnp.sum(z_G[3:])
+    logp = jnp.sum(z_G[3:])
     logp += dist.Normal(0, 1).log_prob(z_G[:3]).sum(axis=-1)
     logp += dist.HalfNormal(1).log_prob(z_G_exp).sum(axis=-1)
     return logp
