@@ -131,16 +131,18 @@ def fit(seed,
              optimizer,
              num_samples=5):
             
+            new_client_states = []
             client_updates = []
             for client_state, client_logdensity_fn in zip(client_states, client_logdensity_fns):
                 _, local_key = jax.random.split(rng_key)
                 client_state, client_update = client_step(local_key, global_state, client_state, client_logdensity_fn, optimizer, num_samples=num_samples)
+                new_client_states.append(client_state)
                 client_updates.append(client_update)
-            global_state, global_update = server_step(rng_key, global_state, client_updates, global_prior_fn, optimizer, num_samples=num_samples)
-            return global_state, client_states, global_update
+            global_state, global_objective = server_step(rng_key, global_state, client_updates, global_prior_fn, optimizer, num_samples=num_samples)
+            return global_state, new_client_states, global_objective
     
     for i in range(num_steps):
-        global_state, client_states, global_update = step(keys[i], global_state, client_states, client_logdensity_fns, global_prior_fn, optimizer, num_samples=num_samples)
-        print(f"Step {i+1}/{num_steps} | Global Objective: {global_update}")
+        global_state, client_states, global_objective = step(keys[i], global_state, client_states, client_logdensity_fns, global_prior_fn, optimizer, num_samples=num_samples)
+        print(f"Step {i+1}/{num_steps} | Global Objective: {global_objective}")
 
     return global_state, client_states
